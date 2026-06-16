@@ -20,21 +20,21 @@ class Settings(BaseSettings):
     auth_rate_limit_window_minutes: int = Field(default=15, alias="AUTH_RATE_LIMIT_WINDOW_MINUTES")
 
     # ----- MercadoPago -----
-    mp_access_token: str = Field(default="", alias="MP_ACCESS_TOKEN")
-    mp_public_key: str = Field(default="", alias="MP_PUBLIC_KEY")
-    mp_webhook_url: str = Field(default="", alias="MP_WEBHOOK_URL")
-    mp_webhook_secret: str = Field(default="", alias="MP_WEBHOOK_SECRET")
+    mp_access_token: str = Field(alias="MP_ACCESS_TOKEN")
+    mp_public_key: str = Field(alias="MP_PUBLIC_KEY")
+    mp_webhook_url: str = Field(alias="MP_WEBHOOK_URL")
+    mp_webhook_secret: str = Field(alias="MP_WEBHOOK_SECRET")
 
     # ----- Front / URLs externas -----
     frontend_url: str = Field(default="http://localhost:5173", alias="FRONTEND_URL")
-    ngrok_url: str = Field(default="", alias="NGROK_URL")
+    ngrok_url: str = Field(alias="NGROK_URL")
 
     # ----- Cloudinary -----
-    cloudinary_cloud_name: str = Field(default="", alias="CLOUDINARY_CLOUD_NAME")
-    cloudinary_api_key: str = Field(default="", alias="CLOUDINARY_API_KEY")
-    cloudinary_api_secret: str = Field(default="", alias="CLOUDINARY_API_SECRET")
+    cloudinary_cloud_name: str = Field(alias="CLOUDINARY_CLOUD_NAME")
+    cloudinary_api_key: str = Field(alias="CLOUDINARY_API_KEY")
+    cloudinary_api_secret: str = Field(alias="CLOUDINARY_API_SECRET")
 
-    # Nivel de log. Literal evita typos (typo en el .env → falla validación).
+    # Nivel de log. 
     LOG_LEVEL: Literal["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"] = "INFO"
 
     @computed_field
