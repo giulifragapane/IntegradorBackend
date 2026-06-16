@@ -51,6 +51,3 @@ build/
 *.temp
 *.pyo
 *.pyd
-
-# Archivos para pruebas
-seed_test_data.py
