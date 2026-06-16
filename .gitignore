@@ -1,0 +1,56 @@
+# Entorno virtual
+.venv/
+venv/
+env/
+.ENV/
+
+# Archivos de Python
+__pycache__/
+*.pyc
+*$py.class
+
+# Variables de entorno
+.env
+.env.*
+!.env.example
+
+# Archivos de configuración de IDE
+.vscode/
+.idea/
+
+# Archivos de logs
+logs/
+*.log
+
+# Archivos de base de datos
+*.db
+*.sqlite
+*.sqlite3
+
+# Archivos de migraciones de Django
+migrations/
+
+# Archivos de cobertura de pruebas
+.coverage
+coverage.xml
+.pytest_cache/
+htmlcov/
+.cache/
+
+# Archivos de distribución
+dist/
+build/
+*egg-info/
+.eggs/
+
+# Archivos de empaquetado
+*.egg-info/
+
+# Archivos temporales
+*.tmp
+*.temp
+*.pyo
+*.pyd
+
+# Archivos para pruebas
+seed_test_data.py

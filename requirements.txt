@@ -1,0 +1,15 @@
+fastapi[standard]
+pydantic
+sqlmodel
+psycopg2-binary
+python-jose[cryptography]==3.3.0
+passlib[bcrypt]==1.7.4
+bcrypt==4.0.1
+requests
+cloudinary
+mercadopago==3.2.0
+pytest
+pytest-asyncio
+pytest-cov
+pytest-mock
+httpx2
