@@ -1,295 +1,163 @@
-# PARCIAL 2 - BACKEND
+# Foodstore — Backend (API)
 
-## Backend (FastAPI + SQLModel)
+**Video de presentación:** [carpeta en Google Drive](https://drive.google.com/drive/folders/1VGVLJdY9Qo6D388iF_YlcTaDRHvbVLUC?usp=drive_link)
 
-Proyecto backend desarrollado con **FastAPI + SQLModel + PostgreSQL**, organizado por módulos y arquitectura por capas:
+API REST del proyecto **Foodstore**, desarrollada con FastAPI. Centraliza la lógica de negocio del sistema: catálogo, autenticación con roles, direcciones, pedidos, pagos con Mercado Pago, carga de imágenes con Cloudinary, estadísticas para el dashboard admin y actualizaciones en tiempo real vía WebSocket.
 
-- Router
-- Schema
-- Service
-- Repository
-- Unit of Work
-- Model
+Los frontends que consumen esta API son [`store_final`](../store_final) (cliente) e [`IntegradorAdmin`](../IntegradorAdmin) (administración).
 
-El proyecto comenzó como un catálogo de productos, categorías e ingredientes, y en la Parte 2 se extendió con autenticación, roles, permisos, direcciones de entrega, pedidos y gestión de usuarios.
+## Stack
 
----
+| Categoría | Tecnología |
+|-----------|------------|
+| Framework web | FastAPI |
+| ORM / modelos | SQLModel |
+| Base de datos | PostgreSQL |
+| Validación | Pydantic |
+| Autenticación | JWT en cookie HttpOnly (python-jose, passlib/bcrypt) |
+| Imágenes | Cloudinary SDK |
+| Pagos | Mercado Pago SDK |
+| Tiempo real | WebSockets (Starlette/FastAPI) |
+| HTTP cliente (tests) | HTTPX |
+| Testing | pytest, pytest-asyncio, pytest-cov, pytest-mock |
 
-## Lista de Verificación del Proyecto Integrador
+## Requisitos previos
 
-### Base del proyecto
+- Python 3.11 o superior
+- PostgreSQL en ejecución
+- Entorno virtual recomendado (`.venv`)
 
-- [X] Entorno: Uso de `.venv`, `requirements.txt` y FastAPI funcionando en modo desarrollo.
-- [X] Modelado: Tablas creadas con SQLModel incluyendo relaciones `Relationship` 1:N y N:N.
-- [X] Validación: Uso de schemas Pydantic, `Annotated`, `Query` y validaciones de datos.
-- [X] CRUD Persistente: Endpoints funcionales para crear, leer, actualizar y borrar en PostgreSQL.
-- [X] Seguridad de Datos: Uso de `response_model` para evitar filtrar datos sensibles.
-- [X] Estructura: Código organizado por módulos: routers, schemas, services, repositories, models y Unit of Work.
-- [X] Soft Delete: Uso de `deleted_at` para bajas lógicas.
-- [X] Timestamps: Uso de `created_at`, `updated_at` y `deleted_at` mediante modelo base.
+## Cómo correr en local
 
----
+1. Entrá a la carpeta del proyecto:
 
-## Funcionalidades implementadas
+```bash
+cd IntegradorBackend
+```
 
-### Catálogo
+2. Creá y activá el entorno virtual:
 
-- [X] CRUD de categorías.
-- [X] CRUD de ingredientes.
-- [X] CRUD de productos.
-- [X] Relaciones producto-categoría e producto-ingrediente.
-- [X] Categorías jerárquicas mediante `parent_id`.
-- [X] Validación de categorías e ingredientes repetidos en productos.
-- [X] Validación para evitar eliminar categorías o ingredientes asociados a productos.
-- [X] Endpoint específico para modificar stock y disponibilidad.
+**Windows (PowerShell):**
 
-### Autenticación y seguridad
+```bash
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1
+```
 
-- [X] Registro de usuarios.
-- [X] Login con email y contraseña.
-- [X] Hash de contraseña con bcrypt.
-- [X] JWT con expiración.
-- [X] Token guardado en cookie `HttpOnly`.
-- [X] Logout eliminando cookie.
-- [X] Endpoint `/me` para obtener el usuario autenticado.
-- [X] Protección de rutas privadas.
+**Linux / macOS:**
 
-### Roles y permisos
+```bash
+python -m venv .venv
+source .venv/bin/activate
+```
 
-Roles implementados:
+3. Instalá dependencias:
 
-- `ADMIN`
-- `STOCK`
-- `PEDIDOS`
-- `CLIENT`
+```bash
+pip install -r requirements.txt
+```
 
-Permisos principales:
+4. Configurá variables de entorno copiando `.env.example` a `.env` y completando PostgreSQL, JWT, Cloudinary y Mercado Pago según tu entorno.
 
-- [X] Lectura pública del catálogo.
-- [X] Crear, editar y eliminar catálogo solo para `ADMIN`.
-- [X] Actualizar stock/disponibilidad para `ADMIN` y `STOCK`.
-- [X] Gestión de pedidos para `ADMIN` y `PEDIDOS`.
-- [X] Clientes pueden crear y consultar sus propios pedidos.
-- [X] Seed inicial de roles y usuario administrador.
+Variables mínimas:
 
-Usuario administrador inicial:
+```env
+POSTGRES_USER=postgres
+POSTGRES_PASSWORD=tu_password
+POSTGRES_DB=fastapi_parcial
+POSTGRES_HOST=localhost
+POSTGRES_PORT=5432
+
+SECRET_KEY=tu_secret_key
+ALGORITHM=HS256
+ACCESS_TOKEN_EXPIRE_MINUTES=30
+
+CLOUDINARY_CLOUD_NAME=tu_cloud_name
+CLOUDINARY_API_KEY=tu_api_key
+CLOUDINARY_API_SECRET=tu_api_secret
+
+MP_ACCESS_TOKEN=TEST-tu-access-token
+FRONTEND_URL=http://localhost:5173
+```
+
+5. Levantá la aplicación:
+
+```bash
+python -m fastapi dev app/main.py
+```
+
+6. Documentación interactiva en `http://localhost:8000/docs`.
+
+**Usuario admin de prueba** (seed al iniciar):
 
 ```txt
 email: admin@admin.com
 password: admin123
 ```
 
-### Direcciones de entrega
-
-- [X] Crear dirección.
-- [X] Listar direcciones del usuario autenticado.
-- [X] Actualizar dirección.
-- [X] Marcar dirección como principal.
-- [X] Eliminar dirección con soft delete.
-- [X] Cada usuario solo puede gestionar sus propias direcciones.
-- [X] Si se elimina la dirección principal, se reasigna otra automáticamente.
-- [X] Si es la primera dirección del usuario, se marca como principal.
-
-### Pedidos
-
-- [X] Crear pedido desde carrito.
-- [X] Validar dirección del usuario.
-- [X] Validar productos activos, disponibles y con stock suficiente.
-- [X] Descontar stock al crear pedido.
-- [X] Guardar snapshot del producto en el detalle: nombre, precio unitario y subtotal.
-- [X] Calcular total del pedido.
-- [X] Listar pedidos del cliente autenticado.
-- [X] Listar pedidos para `ADMIN` y `PEDIDOS`.
-- [X] Cambiar estado del pedido.
-- [X] Validar transiciones de estado desde el service.
-- [X] Cancelar pedido.
-- [X] Devolver stock al cancelar pedido.
-
-Estados implementados:
-
-```txt
-PENDIENTE
-CONFIRMADO
-EN_PREP
-EN_CAMINO
-ENTREGADO
-CANCELADO
-```
-
-Transiciones válidas:
-
-```txt
-PENDIENTE  -> CONFIRMADO / CANCELADO
-CONFIRMADO -> EN_PREP / CANCELADO
-EN_PREP    -> EN_CAMINO
-EN_CAMINO  -> ENTREGADO
-ENTREGADO  -> final
-CANCELADO  -> final
-```
-
-Formas de pago implementadas como enum:
-
-```txt
-MERCADOPAGO
-EFECTIVO
-TRANSFERENCIA
-```
-
-> Nota: La entidad `Pago` no fue implementada porque no era requerida para esta entrega.
-
-### Gestión admin de usuarios
-
-- [X] Listar usuarios activos.
-- [X] Editar usuario.
-- [X] Cambiar roles de usuario.
-- [X] Deshabilitar usuario.
-- [X] Soft delete de usuario.
-- [X] Acceso permitido solo para `ADMIN`.
-
----
-
-## Endpoints principales
-
-### Auth
-
-```txt
-POST /api/v1/auth/register
-POST /api/v1/auth/token
-POST /api/v1/auth/logout
-GET  /api/v1/auth/me
-```
-
-### Catálogo
-
-```txt
-GET    /productos/
-GET    /productos/{producto_id}
-POST   /productos/
-PATCH  /productos/{producto_id}
-DELETE /productos/{producto_id}
-PATCH  /productos/{producto_id}/disponibilidad
-
-GET    /categorias/
-POST   /categorias/
-PATCH  /categorias/{categoria_id}
-DELETE /categorias/{categoria_id}
-
-GET    /ingredientes/
-POST   /ingredientes/
-PATCH  /ingredientes/{ingrediente_id}
-DELETE /ingredientes/{ingrediente_id}
-```
-
-### Direcciones
-
-```txt
-GET    /api/v1/direcciones/
-POST   /api/v1/direcciones/
-PATCH  /api/v1/direcciones/{direccion_id}
-PATCH  /api/v1/direcciones/{direccion_id}/principal
-DELETE /api/v1/direcciones/{direccion_id}
-```
-
-### Pedidos
-
-```txt
-POST  /api/v1/pedidos/
-GET   /api/v1/pedidos/
-GET   /api/v1/pedidos/{pedido_id}
-PATCH /api/v1/pedidos/{pedido_id}/estado
-PATCH /api/v1/pedidos/{pedido_id}/cancelar
-```
-
-### Admin usuarios
-
-```txt
-GET    /api/v1/admin/usuarios
-PATCH  /api/v1/admin/usuarios/{user_id}
-DELETE /api/v1/admin/usuarios/{user_id}
-PATCH  /api/v1/admin/usuarios/{user_id}/roles
-```
-
----
-
-## Ejecución del proyecto
-
-### Requisitos
-
-- Python 3.11 o superior
-- pip
-
-Crear entorno virtual:
+### Tests
 
 ```bash
-python -m venv .venv
+pytest tests/ -v --cov=app --cov-report=term-missing
 ```
 
-Activar entorno virtual e instalar dependencias:
+## Qué hay en el repositorio
 
-### Windows
-```bash
-.\.venv\Scripts\Activate.ps1
+Arquitectura por **módulos** con capas separadas en cada dominio:
+
+```
+app/
+  main.py              # entrada, middlewares, routers, lifespan
+  core/                # config, DB, seguridad, WebSocket, excepciones, rate limit, logging
+  db/                  # seed inicial
+  modules/
+    usuario/           # auth, registro, roles
+    categoria/         # categorías y subcategorías
+    ingrediente/       # ingredientes
+    producto/          # productos y relaciones
+    direccion/         # direcciones de entrega
+    pedido/            # pedidos, estados, WebSocket
+    pago/              # Mercado Pago y webhooks
+    upload/            # imágenes en Cloudinary
+    estadisticas/      # KPIs y métricas del dashboard
+    admin/             # gestión de usuarios
+tests/                 # suite automatizada con pytest
 ```
 
-### Linux / macOS
-```bash
-source .venv/bin/activate
-```
+Cada módulo sigue el patrón: **router → schema → service → repository → unit of work → model**.
 
-### Dependencias
-```bash
-pip install -r requirements.txt
-```
+**Funcionalidades principales**
 
-Una vez activado el entorno virtual e instaladas las dependencias, ejecutar la aplicación con:
-```bash
-python -m fastapi dev app/main.py
-```
+- **Catálogo:** CRUD de categorías, ingredientes y productos; soft delete; stock y disponibilidad.
+- **Auth:** registro, login, logout, JWT en cookie, rate limiting en login/registro.
+- **Pedidos:** creación desde carrito, transiciones de estado validadas, cancelación con devolución de stock.
+- **Pagos:** preferencias de Mercado Pago, webhook y rutas de retorno al frontend.
+- **Upload:** subida y eliminación de imágenes en Cloudinary.
+- **Estadísticas:** resumen, ventas por período, top productos, pedidos por estado e ingresos por forma de pago.
+- **Observabilidad:** exception handlers centralizados, logging por request, timing y `X-Request-ID`.
+- **Tiempo real:** WebSocket en `/api/v1/ws/pedidos` para eventos de pedidos y pagos.
 
-Swagger:
+## Roles
 
-```txt
-http://localhost:8000/docs
-```
+| Rol | Uso principal |
+|-----|----------------|
+| `ADMIN` | Acceso total al sistema |
+| `STOCK` | Lectura de catálogo y actualización de stock |
+| `PEDIDOS` | Gestión de pedidos |
+| `CLIENT` | Compras, direcciones y pedidos propios |
 
----
+## Endpoints destacados
 
-## Variables de entorno
+| Área | Prefijo / ruta | Descripción |
+|------|----------------|-------------|
+| Auth | `/api/v1/auth/` | Registro, login, logout, `/me` |
+| Catálogo | `/productos/`, `/categorias/`, `/ingredientes/` | CRUD del catálogo |
+| Direcciones | `/api/v1/direcciones/` | CRUD de direcciones del cliente |
+| Pedidos | `/api/v1/pedidos/` | Crear, listar, cambiar estado, cancelar |
+| Pagos | `/api/v1/pagos/` | Crear pago MP, webhook, consulta |
+| Upload | `/api/v1/uploads/` | Subir y eliminar imágenes |
+| Estadísticas | `/api/v1/estadisticas/` | Métricas del dashboard admin |
+| Admin | `/api/v1/admin/` | Gestión de usuarios |
+| WebSocket | `/api/v1/ws/pedidos` | Eventos en tiempo real |
 
-Ejemplo de `.env`:
-
-```env
-POSTGRES_USER=postgres
-POSTGRES_PASSWORD=postgres
-POSTGRES_DB=fastapi_db
-POSTGRES_HOST=localhost
-POSTGRES_PORT=5432
-
-SECRET_KEY=secret_key
-ALGORITHM=HS256
-ACCESS_TOKEN_EXPIRE_MINUTES=30
-```
-
----
-
-## Pruebas realizadas
-
-Se realizaron pruebas manuales desde Swagger y una prueba general automática mediante script.
-
-Se validó:
-
-- [X] Endpoints públicos funcionando sin login.
-- [X] Endpoints protegidos devolviendo 401 sin autenticación.
-- [X] Restricciones por rol devolviendo 403 cuando corresponde.
-- [X] Login admin y login cliente.
-- [X] Creación y cancelación de pedidos.
-- [X] Descuento y devolución de stock.
-- [X] Cambios de estado válidos.
-- [X] Rechazo de transiciones inválidas.
-- [X] Gestión admin de usuarios.
-
----
-
-## Nota final
-
-Se intentó cumplir con los puntos requeridos por la consigna, manteniendo una estructura clara, modular y extensible.
+La lista completa está en Swagger: `http://localhost:8000/docs`.
